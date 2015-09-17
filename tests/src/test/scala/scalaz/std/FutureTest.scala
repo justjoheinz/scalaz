@@ -39,6 +39,8 @@ class FutureTest extends SpecLite {
 
   checkAll(monoid.laws[Future[Int]])
   checkAll(monoid.laws[Future[Int @@ Multiplication]])
+  checkAll(zip.laws[Future])
+
 
   // can not use `org.scalacheck.Arbitrary.arbFuture` due to https://github.com/scalaz/scalaz/issues/964
   // https://github.com/rickynils/scalacheck/blob/1.12.4/src/main/scala/org/scalacheck/Arbitrary.scala#L291-L293

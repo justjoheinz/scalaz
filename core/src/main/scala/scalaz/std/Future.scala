@@ -8,7 +8,8 @@ import scala.concurrent.duration.Duration
 import scala.util.{ Try, Success => TSuccess }
 
 trait FutureInstances1 {
-  implicit def futureInstance(implicit ec: ExecutionContext): Nondeterminism[Future] with Cobind[Future] with MonadError[λ[(α, β) => Future[β]], Throwable] with Catchable[Future] =
+  implicit def futureInstance(implicit ec: ExecutionContext): Nondeterminism[Future]
+    with Cobind[Future] with MonadError[λ[(α, β) => Future[β]], Throwable] with Catchable[Future] with Zip[Future] =
     new FutureInstance
 
   implicit def futureSemigroup[A](implicit m: Semigroup[A], ec: ExecutionContext): Semigroup[Future[A]] =
@@ -27,7 +28,8 @@ trait FutureInstances extends FutureInstances1 {
     Monoid.liftMonoid[Future, A]
 }
 
-private class FutureInstance(implicit ec: ExecutionContext) extends Nondeterminism[Future] with Cobind[Future] with MonadError[λ[(α,β) => Future[β]], Throwable] with Catchable[Future] {
+private class FutureInstance(implicit ec: ExecutionContext) extends Nondeterminism[Future]
+                              with Cobind[Future] with MonadError[λ[(α,β) => Future[β]], Throwable] with Catchable[Future] with Zip[Future] {
   def point[A](a: => A): Future[A] = Future(a)
   def bind[A, B](fa: Future[A])(f: A => Future[B]): Future[B] = fa flatMap f
   override def map[A, B](fa: Future[A])(f: A => B): Future[B] = fa map f
@@ -80,6 +82,10 @@ private class FutureInstance(implicit ec: ExecutionContext) extends Nondetermini
 
   def handleError[A](fa: Future[A])(f: Throwable => Future[A]): Future[A] =
     fa.recoverWith(PartialFunction(f))
+
+  override def zip[A, B](a: => Future[A], b: => Future[B]): Future[(A, B)] = {
+    a.zip(b)
+  }
 }
 
 object scalaFuture extends FutureInstances
